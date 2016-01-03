@@ -1,0 +1,22 @@
+bottom.plugins package
+======================
+
+Submodules
+----------
+
+bottom.plugins.router module
+----------------------------
+
+.. automodule:: bottom.plugins.router
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: bottom.plugins
+    :members:
+    :undoc-members:
+    :show-inheritance:

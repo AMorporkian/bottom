@@ -1,0 +1,53 @@
+bottom package
+==============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    bottom.plugins
+
+Submodules
+----------
+
+bottom.connection module
+------------------------
+
+.. automodule:: bottom.connection
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+bottom.event module
+-------------------
+
+.. automodule:: bottom.event
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+bottom.pack module
+------------------
+
+.. automodule:: bottom.pack
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+bottom.unpack module
+--------------------
+
+.. automodule:: bottom.unpack
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: bottom
+    :members:
+    :undoc-members:
+    :show-inheritance:

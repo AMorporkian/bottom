@@ -1,0 +1,410 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bottom.unpack &mdash; Bottom 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bottom 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="bottom" href="../bottom.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for bottom.unpack</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Simplified support for rfc2812 &quot;&quot;&quot;</span>
+<span class="c"># https://tools.ietf.org/html/rfc2812</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">RE_IRCLINE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ^</span>
+<span class="sd">    (:(?P&lt;prefix&gt;[^\s]+)\s+)?    # Optional prefix (src, nick!host, etc)</span>
+<span class="sd">                                 # Prefix matches all non-space characters</span>
+<span class="sd">                                 # Must start with a &#39;:&#39; character</span>
+
+<span class="sd">    (?P&lt;command&gt;[^:\s]+)          # Command is required (JOIN, 001, 403)</span>
+<span class="sd">                                 # Command matches all non-space characters</span>
+
+<span class="sd">    (?P&lt;params&gt;(\s+[^:][^\s]*)*) # Optional params after command</span>
+<span class="sd">                                 # Must have at least one leading space</span>
+<span class="sd">                                 # Params end at first &#39;:&#39; which starts message</span>
+
+<span class="sd">    (?:\s+:(?P&lt;message&gt;.*))?     # Optional message starts after first &#39;:&#39;</span>
+<span class="sd">                                 # Must have at least one leading space</span>
+<span class="sd">    $</span>
+<span class="sd">    &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+
+<span class="n">_2812_synonyms</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">numeric</span><span class="p">,</span> <span class="n">string</span> <span class="ow">in</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s">&quot;001&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WELCOME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;002&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_YOURHOST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;003&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_CREATED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;004&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_MYINFO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;005&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_BOUNCE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;302&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_USERHOST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;303&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ISON&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;301&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_AWAY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;305&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_UNAWAY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;306&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NOWAWAY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;311&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOISUSER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;312&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOISSERVER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;313&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOISOPERATOR&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;317&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOISIDLE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;318&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFWHOIS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;319&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOISCHANNELS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;314&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOWASUSER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;369&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFWHOWAS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;321&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LISTSTART&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;322&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;323&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LISTEND&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;325&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_UNIQOPIS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;324&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_CHANNELMODEIS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;331&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NOTOPIC&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;332&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TOPIC&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;341&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_INVITING&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;342&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_SUMMONING&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;346&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_INVITELIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;347&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFINVITELIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;348&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_EXCEPTLIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;349&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFEXCEPTLIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;351&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_VERSION&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;352&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_WHOREPLY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;315&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFWHO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;353&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NAMREPLY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;366&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFNAMES&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;364&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LINKS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;365&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFLINKS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;367&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_BANLIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;368&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFBANLIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;371&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_INFO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;374&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFINFO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;375&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_MOTDSTART&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;372&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_MOTD&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;376&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFMOTD&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;381&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_YOUREOPER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;382&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_REHASHING&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;383&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_YOURESERVICE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;391&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TIME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;392&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_USERSSTART&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;393&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_USERS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;394&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFUSERS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;395&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NOUSERS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;200&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACELINK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;201&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACECONNECTING&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;202&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACEHANDSHAKE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;203&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACEUNKNOWN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;204&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACEOPERATOR&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;205&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACEUSER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;206&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACESERVER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;207&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACESERVICE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;208&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACENEWTYPE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;209&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACECLASS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;210&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACERECONNECT&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;261&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACELOG&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;262&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRACEEND&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;211&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_STATSLINKINFO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;212&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_STATSCOMMANDS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;219&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFSTATS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;242&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_STATSUPTIME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;243&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_STATSOLINE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;221&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_UMODEIS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;234&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_SERVLIST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;235&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_SERVLISTEND&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;251&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERCLIENT&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;252&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSEROP&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;253&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERUNKNOWN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;254&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERCHANNELS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;255&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;256&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ADMINME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;257&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ADMINLOC1&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;258&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ADMINLOC2&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;259&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ADMINEMAIL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;263&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_TRYAGAIN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;401&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOSUCHNICK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;402&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOSUCHSERVER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;403&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOSUCHCHANNEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;404&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_CANNOTSENDTOCHAN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;405&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_TOOMANYCHANNELS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;406&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_WASNOSUCHNICK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;407&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_TOOMANYTARGETS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;408&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOSUCHSERVICE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;409&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOORIGIN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;411&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NORECIPIENT&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;412&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOTEXTTOSEND&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;413&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOTOPLEVEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;414&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_WILDTOPLEVEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;415&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_BADMASK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;421&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_UNKNOWNCOMMAND&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;422&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOMOTD&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;423&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOADMININFO&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;424&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_FILEERROR&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;431&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NONICKNAMEGIVEN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;432&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_ERRONEUSNICKNAME&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;433&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NICKNAMEINUSE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;436&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NICKCOLLISION&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;437&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_UNAVAILRESOURCE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;441&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_USERNOTINCHANNEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;442&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOTONCHANNEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;443&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_USERONCHANNEL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;444&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOLOGIN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;445&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_SUMMONDISABLED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;446&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_USERSDISABLED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;451&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOTREGISTERED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;461&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NEEDMOREPARAMS&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;462&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_ALREADYREGISTRED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;463&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOPERMFORHOST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;464&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_PASSWDMISMATCH&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;465&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_YOUREBANNEDCREEP&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;466&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_YOUWILLBEBANNED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;467&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_KEYSET&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;471&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_CHANNELISFULL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;472&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_UNKNOWNMODE&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;473&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_INVITEONLYCHAN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;474&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_BANNEDFROMCHAN&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;475&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_BADCHANNELKEY&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;476&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_BADCHANMASK&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;477&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOCHANMODES&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;478&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_BANLISTFULL&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;481&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOPRIVILEGES&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;482&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_CHANOPRIVSNEEDED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;483&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_CANTKILLSERVER&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;484&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_RESTRICTED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;485&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_UNIQOPPRIVSNEEDED&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;491&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOOPERHOST&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;501&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_UMODEUNKNOWNFLAG&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s">&quot;502&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_USERSDONTMATCH&quot;</span><span class="p">)</span>
+<span class="p">]:</span>
+    <span class="n">_2812_synonyms</span><span class="p">[</span><span class="n">string</span><span class="p">]</span> <span class="o">=</span> <span class="n">string</span>
+    <span class="n">_2812_synonyms</span><span class="p">[</span><span class="n">numeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">string</span>
+
+
+<div class="viewcode-block" id="synonym"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.synonym">[docs]</a><span class="k">def</span> <span class="nf">synonym</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_2812_synonyms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="nickmask"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.nickmask">[docs]</a><span class="k">def</span> <span class="nf">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; store nick, user, host in kwargs if prefix is correct format &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s">&quot;!&quot;</span> <span class="ow">in</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="s">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">prefix</span><span class="p">:</span>
+        <span class="c"># From a user</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;nick&#39;</span><span class="p">],</span> <span class="n">remainder</span> <span class="o">=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;!&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;host&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">remainder</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;@&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># From a server, probably the host</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;host&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prefix</span></div>
+
+
+<div class="viewcode-block" id="add_nickmask"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.add_nickmask">[docs]</a><span class="k">def</span> <span class="nf">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="s">&quot;host&quot;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="split_line"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.split_line">[docs]</a><span class="k">def</span> <span class="nf">split_line</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Parse message according to rfc 2812 for routing &quot;&quot;&quot;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">RE_IRCLINE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Invalid line&quot;</span><span class="p">)</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&quot;prefix&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&quot;command&quot;</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;params&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">params</span></div>
+
+
+<div class="viewcode-block" id="unpack_command"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.unpack_command">[docs]</a><span class="k">def</span> <span class="nf">unpack_command</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="n">prefix</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">split_line</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PING&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOMOTD&quot;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PRIVMSG&quot;</span><span class="p">,</span> <span class="s">&quot;NOTICE&quot;</span><span class="p">]:</span>
+        <span class="n">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;JOIN&quot;</span><span class="p">]:</span>
+        <span class="n">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;channel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;QUIT&quot;</span><span class="p">]:</span>
+        <span class="n">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PART&quot;</span><span class="p">]:</span>
+        <span class="n">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;channel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;INVITE&quot;</span><span class="p">]:</span>
+        <span class="n">nickmask</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;channel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_TOPIC&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NOTOPIC&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFNAMES&quot;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;channel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_MOTDSTART&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_MOTD&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFMOTD&quot;</span><span class="p">,</span>
+                     <span class="s">&quot;RPL_WELCOME&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_YOURHOST&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_CREATED&quot;</span><span class="p">,</span>
+                     <span class="s">&quot;RPL_LUSERCLIENT&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERME&quot;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_LUSEROP&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERUNKNOWN&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERCHANNELS&quot;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_MYINFO&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_BOUNCE&quot;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&quot;message&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Unknown command &#39;{}&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">command</span><span class="p">,</span> <span class="n">kwargs</span></div>
+
+
+<div class="viewcode-block" id="parameters"><a class="viewcode-back" href="../../bottom.html#bottom.unpack.parameters">[docs]</a><span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="n">command</span><span class="p">):</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;CLIENT_CONNECT&quot;</span><span class="p">,</span> <span class="s">&quot;CLIENT_DISCONNECT&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;host&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PING&quot;</span><span class="p">,</span> <span class="s">&quot;ERR_NOMOTD&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PRIVMSG&quot;</span><span class="p">,</span> <span class="s">&quot;NOTICE&quot;</span><span class="p">]:</span>
+        <span class="n">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;JOIN&quot;</span><span class="p">]:</span>
+        <span class="n">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;QUIT&quot;</span><span class="p">]:</span>
+        <span class="n">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_TOPIC&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_NOTOPIC&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFNAMES&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;PART&quot;</span><span class="p">]:</span>
+        <span class="n">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;INVITE&#39;</span><span class="p">]:</span>
+        <span class="n">add_nickmask</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_MOTDSTART&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_MOTD&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_ENDOFMOTD&quot;</span><span class="p">,</span>
+                     <span class="s">&quot;RPL_WELCOME&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_YOURHOST&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_CREATED&quot;</span><span class="p">,</span>
+                     <span class="s">&quot;RPL_LUSERCLIENT&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERME&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_LUSEROP&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERUNKNOWN&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_LUSERCHANNELS&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">command</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;RPL_MYINFO&quot;</span><span class="p">,</span> <span class="s">&quot;RPL_BOUNCE&quot;</span><span class="p">]:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;info&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Unknown command &#39;{}&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">params</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../bottom.html">bottom</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Joe Cross.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bottom package &mdash; Bottom 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bottom 1.0.0 documentation" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bottom-package">
+<h1>bottom package<a class="headerlink" href="#bottom-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bottom.plugins.html">bottom.plugins package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bottom.plugins.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bottom.plugins.html#module-bottom.plugins.router">bottom.plugins.router module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bottom.plugins.html#module-bottom.plugins">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-bottom.connection">
+<span id="bottom-connection-module"></span><h2>bottom.connection module<a class="headerlink" href="#module-bottom.connection" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bottom.connection.Connection">
+<em class="property">class </em><code class="descclassname">bottom.connection.</code><code class="descname">Connection</code><span class="sig-paren">(</span><em>host: str</em>, <em>port: str</em>, <em>events: bottom.event.EventsMixin</em>, <em>encoding: str</em>, <em>ssl: bool</em>, <em>*</em>, <em>loop: asyncio.base_events.BaseEventLoop</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/connection.html#Connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="bottom.connection.Connection.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/connection.html#Connection.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiates and waits for a  connection.
+Triggers a <cite>CLIENT_CONNECT</cite> event.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="bottom.connection.Connection.connected">
+<code class="descname">connected</code><a class="headerlink" href="#bottom.connection.Connection.connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns whether there is an active connection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.connection.Connection.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/connection.html#Connection.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiates a disconnect. Triggers a <cite>CLIENT_DISCONNECT</cite> event.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.connection.Connection.read">
+<code class="descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; str<a class="reference internal" href="_modules/bottom/connection.html#Connection.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a string from the server.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The string read from the server.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.connection.Connection.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/connection.html#Connection.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the server and enters a read loop, triggering events
+where is appropriate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.connection.Connection.send">
+<code class="descname">send</code><span class="sig-paren">(</span><em>msg: str</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/connection.html#Connection.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.connection.Connection.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a message on the active connection.
+:param msg: The message to send.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bottom.event">
+<span id="bottom-event-module"></span><h2>bottom.event module<a class="headerlink" href="#module-bottom.event" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bottom.event.EventsMixin">
+<em class="property">class </em><code class="descclassname">bottom.event.</code><code class="descname">EventsMixin</code><span class="sig-paren">(</span><em>getparams: typing.Callable</em>, <em>*</em>, <em>loop: asyncio.base_events.BaseEventLoop</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/event.html#EventsMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.event.EventsMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="bottom.event.EventsMixin.on">
+<code class="descname">on</code><span class="sig-paren">(</span><em>event: str</em><span class="sig-paren">)</span> &rarr; typing.Callable<a class="reference internal" href="_modules/bottom/event.html#EventsMixin.on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.event.EventsMixin.on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorate a function to be invoked when the given <a href="#id1"><span class="problematic" id="id2">:param:`event`</span></a> occurs.
+The function may be a coroutine.</p>
+<p>A decorator that takes a function and registers it with the event.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="n">events</span> <span class="o">=</span> <span class="n">EventsMixin</span><span class="p">({</span><span class="s">&#39;test&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;arg&#39;</span><span class="p">,</span> <span class="s">&#39;one&#39;</span><span class="p">,</span> <span class="s">&#39;two&#39;</span><span class="p">]})</span>
+
+<span class="nd">@events.on</span><span class="p">(</span><span class="s">&#39;test&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">one</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">one</span><span class="p">)</span>
+
+<span class="n">event</span> <span class="o">=</span> <span class="s">&#39;test&#39;</span>
+<span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;one&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;two&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;arg&#39;</span><span class="p">:</span> <span class="s">&#39;arg&#39;</span><span class="p">}</span>
+
+<span class="n">events</span><span class="o">.</span><span class="n">trigger</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+<span class="c"># Run all queued events</span>
+<span class="n">loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+<span class="n">loop</span><span class="o">.</span><span class="n">run_forever</span><span class="p">()</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> &#8211; The name of the event to wait for.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The wrapped function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.event.EventsMixin.trigger">
+<code class="descname">trigger</code><span class="sig-paren">(</span><em>event: str</em>, <em>**kwargs</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom/event.html#EventsMixin.trigger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.event.EventsMixin.trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triggers an event across a registered listeners.
+:param event: The event to trigger.
+:param kwargs: Any keyword arguments to pass to called listeners.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.event.partial_bind">
+<code class="descclassname">bottom.event.</code><code class="descname">partial_bind</code><span class="sig-paren">(</span><em>func: typing.Callable</em><span class="sig-paren">)</span> &rarr; typing.Callable<a class="reference internal" href="_modules/bottom/event.html#partial_bind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.event.partial_bind" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bottom.event.validate_func">
+<code class="descclassname">bottom.event.</code><code class="descname">validate_func</code><span class="sig-paren">(</span><em>event: str</em>, <em>func: typing.Callable</em>, <em>parameters: typing.Dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/event.html#validate_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.event.validate_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates the signature of a function against the expected arguments
+for a given event type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>event</strong> &#8211; The type of event to validate against.</li>
+<li><strong>func</strong> &#8211; The function to validate.</li>
+<li><strong>parameters</strong> &#8211; The expected parameters of the function.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-bottom.pack">
+<span id="bottom-pack-module"></span><h2>bottom.pack module<a class="headerlink" href="#module-bottom.pack" title="Permalink to this headline">¶</a></h2>
+<p>Simplified support for rfc2812</p>
+<dl class="function">
+<dt id="bottom.pack.b">
+<code class="descclassname">bottom.pack.</code><code class="descname">b</code><span class="sig-paren">(</span><em>field</em>, <em>kwargs</em>, <em>present=&lt;object object at 0x006F8748&gt;</em>, <em>missing=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/pack.html#b"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.pack.b" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <cite>present</cite> value (default to <cite>field</cite>) if <cite>field</cite> in <cite>kwargs</cite> and
+Truthy, otherwise return <cite>missing</cite> value</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.pack.f">
+<code class="descclassname">bottom.pack.</code><code class="descname">f</code><span class="sig-paren">(</span><em>field</em>, <em>kwargs</em>, <em>default=&lt;object object at 0x006F8748&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/pack.html#f"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.pack.f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for more readable command construction</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.pack.pack">
+<code class="descclassname">bottom.pack.</code><code class="descname">pack</code><span class="sig-paren">(</span><em>field</em>, <em>kwargs</em>, <em>default=&lt;object object at 0x006F8748&gt;</em>, <em>sep='</em>, <em>'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/pack.html#pack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.pack.pack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Util for joining multiple fields with commas</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.pack.pack_command">
+<code class="descclassname">bottom.pack.</code><code class="descname">pack_command</code><span class="sig-paren">(</span><em>command</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/pack.html#pack_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.pack.pack_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pack a command to send to an IRC server</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-bottom.unpack">
+<span id="bottom-unpack-module"></span><h2>bottom.unpack module<a class="headerlink" href="#module-bottom.unpack" title="Permalink to this headline">¶</a></h2>
+<p>Simplified support for rfc2812</p>
+<dl class="function">
+<dt id="bottom.unpack.add_nickmask">
+<code class="descclassname">bottom.unpack.</code><code class="descname">add_nickmask</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#add_nickmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.add_nickmask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bottom.unpack.nickmask">
+<code class="descclassname">bottom.unpack.</code><code class="descname">nickmask</code><span class="sig-paren">(</span><em>prefix</em>, <em>kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#nickmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.nickmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>store nick, user, host in kwargs if prefix is correct format</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.unpack.parameters">
+<code class="descclassname">bottom.unpack.</code><code class="descname">parameters</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bottom.unpack.split_line">
+<code class="descclassname">bottom.unpack.</code><code class="descname">split_line</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#split_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.split_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse message according to rfc 2812 for routing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bottom.unpack.synonym">
+<code class="descclassname">bottom.unpack.</code><code class="descname">synonym</code><span class="sig-paren">(</span><em>command</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#synonym"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.synonym" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bottom.unpack.unpack_command">
+<code class="descclassname">bottom.unpack.</code><code class="descname">unpack_command</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bottom/unpack.html#unpack_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.unpack.unpack_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-bottom">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-bottom" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bottom.Client">
+<em class="property">class </em><code class="descclassname">bottom.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>host: str</em>, <em>port: str</em>, <em>*</em>, <em>encoding: str='UTF-8'</em>, <em>ssl: bool=True</em>, <em>loop: asyncio.base_events.BaseEventLoop=None</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom.html#Client"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bottom.event.EventsMixin" title="bottom.event.EventsMixin"><code class="xref py py-class docutils literal"><span class="pre">bottom.event.EventsMixin</span></code></a></p>
+<dl class="method">
+<dt id="bottom.Client.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom.html#Client.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triggers a connection to the defined server.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="bottom.Client.connected">
+<code class="descname">connected</code><a class="headerlink" href="#bottom.Client.connected" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Whether the bot is connected or not.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.Client.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom.html#Client.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triggers a disconnect to the defined server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.Client.on">
+<code class="descname">on</code><span class="sig-paren">(</span><em>command: str</em><span class="sig-paren">)</span> &rarr; typing.Callable<a class="reference internal" href="_modules/bottom.html#Client.on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client.on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorate a function to be invoked when a <a href="#id3"><span class="problematic" id="id4">:param:`command`</span></a> occurs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>command</strong> &#8211; The name of the command.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.Client.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom.html#Client.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the client until it disconnects (without reconnecting)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bottom.Client.send">
+<code class="descname">send</code><span class="sig-paren">(</span><em>command: str</em>, <em>**kwargs</em><span class="sig-paren">)</span> &rarr; None<a class="reference internal" href="_modules/bottom.html#Client.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bottom.Client.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send a message to the server.</p>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;nick&#39;</span><span class="p">,</span> <span class="n">nick</span><span class="o">=</span><span class="s">&#39;weatherbot&#39;</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s">&#39;privmsg&#39;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s">&#39;#python&#39;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Hello, World!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">bottom package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-bottom.connection">bottom.connection module</a></li>
+<li><a class="reference internal" href="#module-bottom.event">bottom.event module</a></li>
+<li><a class="reference internal" href="#module-bottom.pack">bottom.pack module</a></li>
+<li><a class="reference internal" href="#module-bottom.unpack">bottom.unpack module</a></li>
+<li><a class="reference internal" href="#module-bottom">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/bottom.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Joe Cross.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/bottom.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

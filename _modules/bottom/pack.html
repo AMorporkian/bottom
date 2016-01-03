@@ -1,0 +1,639 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bottom.pack &mdash; Bottom 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Bottom 1.0.0 documentation" href="../../index.html" />
+    <link rel="up" title="bottom" href="../bottom.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for bottom.pack</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Simplified support for rfc2812 &quot;&quot;&quot;</span>
+<span class="c"># https://tools.ietf.org/html/rfc2812</span>
+<span class="kn">import</span> <span class="nn">collections.abc</span>
+<span class="n">MISSING</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="b"><a class="viewcode-back" href="../../bottom.html#bottom.pack.b">[docs]</a><span class="k">def</span> <span class="nf">b</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">present</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return `present` value (default to `field`) if `field` in `kwargs` and</span>
+<span class="sd">    Truthy, otherwise return `missing` value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="bp">False</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">field</span> <span class="k">if</span> <span class="n">present</span> <span class="ow">is</span> <span class="n">MISSING</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">present</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="f"><a class="viewcode-back" href="../../bottom.html#bottom.pack.f">[docs]</a><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">MISSING</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Alias for more readable command construction &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">MISSING</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">field</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="pack"><a class="viewcode-back" href="../../bottom.html#bottom.pack.pack">[docs]</a><span class="k">def</span> <span class="nf">pack</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">MISSING</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&quot;,&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Util for joining multiple fields with commas &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">MISSING</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="pack_command"><a class="viewcode-back" href="../../bottom.html#bottom.pack.pack_command">[docs]</a><span class="k">def</span> <span class="nf">pack_command</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Pack a command to send to an IRC server &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">command</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Must provide a command&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Command must be a str&quot;</span><span class="p">)</span>
+
+    <span class="c"># ========================================================================</span>
+    <span class="c"># For each command, provide:</span>
+    <span class="c">#  1. a link to the definition in rfc2812</span>
+    <span class="c">#  2. the normalized grammar, which may not equate to the rfc grammar</span>
+    <span class="c">#     the normalized grammar will use the keys expected in kwargs,</span>
+    <span class="c">#     which usually do NOT line up with rfc2812.  They may also make</span>
+    <span class="c">#     optional fields which are required in rfc2812, by providing</span>
+    <span class="c">#     the most common or reasonable defaults.</span>
+    <span class="c">#  3. exhaustive examples, preferring normalized form of</span>
+    <span class="c">#     the rfc2812 examples</span>
+    <span class="c"># ========================================================================</span>
+
+    <span class="c"># ========================================================================</span>
+    <span class="c"># Normalized grammar:</span>
+    <span class="c"># : should not be provided; it denotes the beginning of the last</span>
+    <span class="c">#   field, which may contain spaces</span>
+    <span class="c"># [] indicates an optional field</span>
+    <span class="c"># &lt;&gt; denote the key that the field will be filled with</span>
+    <span class="c"># because fields are filled from a dict, required fields may follow</span>
+    <span class="c">#   optional fields - see USER command, where mode is optional</span>
+    <span class="c">#   (and defaults to 0)</span>
+    <span class="c"># &quot;&quot; indicates a literal value that is inserted if present</span>
+    <span class="c"># ========================================================================</span>
+
+    <span class="c"># PASS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.1</span>
+    <span class="c"># PASS &lt;password&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># PASS secretpasswordhere</span>
+    <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PASS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;PASS &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;password&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c"># NICK</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.2</span>
+    <span class="c"># NICK &lt;nick&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># NICK Wiz</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;NICK&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;NICK &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c"># USER</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.3</span>
+    <span class="c"># USER &lt;user&gt; [&lt;mode&gt;] :&lt;realname&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># USER guest 8 :Ronnie Reagan</span>
+    <span class="c"># USER guest :Ronnie Reagan</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;USER&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;USER {} {} * :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;mode&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;realname&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># OPER</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.4</span>
+    <span class="c"># OPER &lt;user&gt; &lt;password&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># OPER AzureDiamond hunter2</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;OPER&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;OPER {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;password&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># USERMODE (renamed from MODE)</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.5</span>
+    <span class="c"># MODE &lt;nick&gt; [&lt;modes&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># MODE WiZ -w</span>
+    <span class="c"># MODE Angel +i</span>
+    <span class="c"># MODE</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;USERMODE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;MODE {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;modes&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># SERVICE</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.6</span>
+    <span class="c"># SERVICE &lt;nick&gt; &lt;distribution&gt; &lt;type&gt; :&lt;info&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># SERVICE dict *.fr 0 :French</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;SERVICE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;SERVICE {} * {} {} 0 :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;distribution&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">f</span><span class="p">(</span><span class="s">&quot;info&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># QUIT</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.7</span>
+    <span class="c"># QUIT :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># QUIT :Gone to lunch</span>
+    <span class="c"># QUIT</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;QUIT&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;QUIT :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;QUIT&quot;</span>
+
+    <span class="c"># SQUIT</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.1.8</span>
+    <span class="c"># SQUIT &lt;server&gt; [&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># SQUIT tolsun.oulu.fi :Bad Link</span>
+    <span class="c"># SQUIT tolsun.oulu.fi</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;SQUIT&quot;</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="s">&quot;SQUIT &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;server&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base</span>
+
+    <span class="c"># JOIN</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.1</span>
+    <span class="c"># JOIN &lt;channel&gt; [&lt;key&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># JOIN #foo fookey</span>
+    <span class="c"># JOIN #foo</span>
+    <span class="c"># JOIN 0</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;JOIN&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;JOIN {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                   <span class="n">pack</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># PART</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.2</span>
+    <span class="c"># PART &lt;channel&gt; :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># PART #foo :I lost</span>
+    <span class="c"># PART #foo</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PART&quot;</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="s">&quot;PART &quot;</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base</span>
+
+    <span class="c"># CHANNELMODE (renamed from MODE)</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.3</span>
+    <span class="c"># MODE &lt;channel&gt; &lt;modes&gt; [&lt;params&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># MODE #Finnish +imI *!*@*.fi</span>
+    <span class="c"># MODE #en-ops +v WiZ</span>
+    <span class="c"># MODE #Fins -s</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;CHANNELMODE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;MODE {} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;modes&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;params&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># TOPIC</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.4</span>
+    <span class="c"># TOPIC &lt;channel&gt; :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># TOPIC #test :New topic</span>
+    <span class="c"># TOPIC #test :</span>
+    <span class="c"># TOPIC #test</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;TOPIC&quot;</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="s">&quot;TOPIC &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base</span>
+
+    <span class="c"># NAMES</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.5</span>
+    <span class="c"># NAMES [&lt;channel&gt;] [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># NAMES #twilight_zone remote.*.edu</span>
+    <span class="c"># NAMES #twilight_zone</span>
+    <span class="c"># NAMES</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;NAMES&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;channel&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;NAMES {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                        <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;NAMES&quot;</span>
+
+    <span class="c"># LIST</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.6</span>
+    <span class="c"># LIST [&lt;channel&gt;] [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># LIST #twilight_zone remote.*.edu</span>
+    <span class="c"># LIST #twilight_zone</span>
+    <span class="c"># LIST</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;LIST&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;channel&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;LIST {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                       <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;LIST&quot;</span>
+
+    <span class="c"># INVITE</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.7</span>
+    <span class="c"># INVITE &lt;nick&gt; &lt;channel&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># INVITE Wiz #Twilight_Zone</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;INVITE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;INVITE {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                     <span class="n">f</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># KICK</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.2.8</span>
+    <span class="c"># KICK &lt;channel&gt; &lt;nick&gt; :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># KICK #Finnish WiZ :Speaking English</span>
+    <span class="c"># KICK #Finnish WiZ,Wiz-Bot :Both speaking English</span>
+    <span class="c"># KICK #Finnish,#English WiZ,ZiW :Speaking wrong language</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;KICK&quot;</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="s">&quot;KICK {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                   <span class="n">pack</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base</span>
+
+    <span class="c"># PRIVMSG</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.3.1</span>
+    <span class="c"># PRIVMSG &lt;target&gt; :&lt;message&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># PRIVMSG Angel :yes I&#39;m receiving it !</span>
+    <span class="c"># PRIVMSG $*.fi :Server tolsun.oulu.fi rebooting.</span>
+    <span class="c"># PRIVMSG #Finnish :This message is in english</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PRIVMSG&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;PRIVMSG {} :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                       <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># NOTICE</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.3.2</span>
+    <span class="c"># NOTICE &lt;target&gt; :&lt;message&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># NOTICE Angel :yes I&#39;m receiving it !</span>
+    <span class="c"># NOTICE $*.fi :Server tolsun.oulu.fi rebooting.</span>
+    <span class="c"># NOTICE #Finnish :This message is in english</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;NOTICE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;NOTICE {} :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># MOTD</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.1</span>
+    <span class="c"># MOTD [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># MOTD remote.*.edu</span>
+    <span class="c"># MOTD</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;MOTD&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;MOTD &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># LUSERS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.2</span>
+    <span class="c"># LUSERS [&lt;mask&gt;] [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># LUSERS *.edu remote.*.edu</span>
+    <span class="c"># LUSERS *.edu</span>
+    <span class="c"># LUSERS</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;LUSERS&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;LUSERS {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                         <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;LUSERS&quot;</span>
+
+    <span class="c"># VERSION</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.3</span>
+    <span class="c"># VERSION [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># VERSION remote.*.edu</span>
+    <span class="c"># VERSION</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;VERSION&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;VERSION &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># STATS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.4</span>
+    <span class="c"># STATS [&lt;query&gt;] [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># STATS m remote.*.edu</span>
+    <span class="c"># STATS m</span>
+    <span class="c"># STATS</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;STATS&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;query&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;STATS {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;query&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                        <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;STATS&quot;</span>
+
+    <span class="c"># LINKS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.5</span>
+    <span class="c"># LINKS [&lt;remote&gt;] [&lt;mask&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># LINKS *.edu *.bu.edu</span>
+    <span class="c"># LINKS *.au</span>
+    <span class="c"># LINKS</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;LINKS&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;remote&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;LINKS {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;remote&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="s">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;LINKS &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;LINKS&quot;</span>
+
+    <span class="c"># TIME</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.6</span>
+    <span class="c"># TIME [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># TIME remote.*.edu</span>
+    <span class="c"># TIME</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;TIME&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;TIME &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># CONNECT</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.7</span>
+    <span class="c"># CONNECT &lt;target&gt; &lt;port&gt; [&lt;remote&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># CONNECT tolsun.oulu.fi 6667 *.edu</span>
+    <span class="c"># CONNECT tolsun.oulu.fi 6667</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;CONNECT&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;CONNECT {} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                         <span class="n">f</span><span class="p">(</span><span class="s">&quot;port&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                         <span class="n">f</span><span class="p">(</span><span class="s">&quot;remote&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># TRACE</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.8</span>
+    <span class="c"># TRACE [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># TRACE</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;TRACE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;TRACE &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># ADMIN</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.9</span>
+    <span class="c"># ADMIN [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># ADMIN</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;ADMIN&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;ADMIN &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># INFO</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.4.10</span>
+    <span class="c"># INFO [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># INFO</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;INFO&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;INFO &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># SERVLIST</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.5.1</span>
+    <span class="c"># SERVLIST [&lt;mask&gt;] [&lt;type&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># SERVLIST *SERV 3</span>
+    <span class="c"># SERVLIST *SERV</span>
+    <span class="c"># SERVLIST</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;SERVLIST&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;SERVLIST {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+                                       <span class="n">f</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># SQUERY</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.5.2</span>
+    <span class="c"># SQUERY &lt;target&gt; :&lt;message&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># SQUERY irchelp :HELP privmsg</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;SQUERY&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;SQUERY {} :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># WHO</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.6.1</span>
+    <span class="c"># WHO [&lt;mask&gt;] [&quot;o&quot;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># WHO jto* o</span>
+    <span class="c"># WHO *.fi</span>
+    <span class="c"># WHO</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;WHO&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;WHO {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span> <span class="n">b</span><span class="p">(</span><span class="s">&quot;o&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># WHOIS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.6.2</span>
+    <span class="c"># WHOIS &lt;mask&gt; [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># WHOIS jto* o remote.*.edu</span>
+    <span class="c"># WHOIS jto* o</span>
+    <span class="c"># WHOIS *.fi</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;WHOIS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;WHOIS {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;mask&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                    <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+
+    <span class="c"># WHOWAS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.6.3</span>
+    <span class="c"># WHOWAS &lt;nick&gt; [&lt;count&gt;] [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># WHOWAS Wiz 9 remote.*.edu</span>
+    <span class="c"># WHOWAS Wiz 9</span>
+    <span class="c"># WHOWAS Mermaid</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;WHOWAS&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;count&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;WHOWAS {} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pack</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                            <span class="n">f</span><span class="p">(</span><span class="s">&quot;count&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                            <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;WHOWAS &quot;</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c"># KILL</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.7.1</span>
+    <span class="c"># KILL &lt;nick&gt; :&lt;message&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># KILL WiZ :Spamming joins</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;KILL&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;KILL {} :{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="c"># PING</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.7.3</span>
+    <span class="c"># PING [&lt;server1&gt;] [&lt;server2&gt;] :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># PING csd.bu.edu tolsun.oulu.fi :Keepalive</span>
+    <span class="c"># PING csd.bu.edu :I&#39;m still here</span>
+    <span class="c"># PING :I&#39;m still here</span>
+    <span class="c"># PING</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PING&quot;</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;PING {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;server1&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;server2&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">message</span>
+
+    <span class="c"># PONG</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-3.7.3</span>
+    <span class="c"># PONG [&lt;server1&gt;] [&lt;server2&gt;] :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># PONG csd.bu.edu tolsun.oulu.fi :Keepalive</span>
+    <span class="c"># PONG csd.bu.edu :I&#39;m still here</span>
+    <span class="c"># PONG :I&#39;m still here</span>
+    <span class="c"># PONG</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;PONG&quot;</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;PONG {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;server1&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">),</span>
+                                      <span class="n">f</span><span class="p">(</span><span class="s">&quot;server2&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s">&quot; :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">message</span>
+
+    <span class="c"># AWAY</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.1</span>
+    <span class="c"># AWAY :[&lt;message&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># AWAY :Gone to lunch.</span>
+    <span class="c"># AWAY</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;AWAY&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;message&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;AWAY :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s">&quot;AWAY&quot;</span>
+
+    <span class="c"># REHASH</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.2</span>
+    <span class="c"># REHASH</span>
+    <span class="c"># ----------</span>
+    <span class="c"># REHASH</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;REHASH&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;REHASH&quot;</span>
+
+    <span class="c"># DIE</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.3</span>
+    <span class="c"># DIE</span>
+    <span class="c"># ----------</span>
+    <span class="c"># DIE</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;DIE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;DIE&quot;</span>
+
+    <span class="c"># RESTART</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.4</span>
+    <span class="c"># RESTART</span>
+    <span class="c"># ----------</span>
+    <span class="c"># RESTART</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;RESTART&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;RESTART&quot;</span>
+
+    <span class="c"># SUMMON</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.5</span>
+    <span class="c"># SUMMON &lt;nick&gt; [&lt;target&gt;] [&lt;channel&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># SUMMON Wiz remote.*.edu #Finnish</span>
+    <span class="c"># SUMMON Wiz remote.*.edu</span>
+    <span class="c"># SUMMON Wiz</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;SUMMON&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;target&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;SUMMON {} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                            <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">),</span>
+                                            <span class="n">f</span><span class="p">(</span><span class="s">&quot;channel&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s">&quot;SUMMON &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c"># USERS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.6</span>
+    <span class="c"># USERS [&lt;target&gt;]</span>
+    <span class="c"># ----------</span>
+    <span class="c"># USERS remote.*.edu</span>
+    <span class="c"># USERS</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;USERS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;USERS &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;target&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c"># WALLOPS</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.7</span>
+    <span class="c"># WALLOPS :&lt;message&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># WALLOPS :Maintenance in 5 minutes</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;WALLOPS&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;WALLOPS :&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="s">&quot;message&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c"># USERHOST</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.8</span>
+    <span class="c"># USERHOST &lt;nick&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># USERHOST Wiz Michael syrk</span>
+    <span class="c"># USERHOST syrk</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;USERHOST&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;USERHOST &quot;</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="c"># ISON</span>
+    <span class="c"># https://tools.ietf.org/html/rfc2812#section-4.9</span>
+    <span class="c"># ISON &lt;nick&gt;</span>
+    <span class="c"># ----------</span>
+    <span class="c"># ISON Wiz Michael syrk</span>
+    <span class="c"># ISON syrk</span>
+    <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s">&quot;ISON&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&quot;ISON &quot;</span> <span class="o">+</span> <span class="n">pack</span><span class="p">(</span><span class="s">&quot;nick&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Unknown command &#39;{}&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  <li><a href="../bottom.html">bottom</a><ul>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Joe Cross.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
